@@ -1,0 +1,128 @@
+@font-face {
+    font-family: "ShiningForceFont";
+    src: url("./shining-force-large.ttf");
+}
+
+body {
+    background-color: transparent;
+    max-width: 400px;
+}
+
+.characters_data {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5pt;
+}
+
+.character_data {    
+    display: none;
+    border: 3px orange outset;
+    border-radius: 5pt;
+    padding: 5pt;
+    margin-right: 2.5pt;
+    margin-left: 2.5pt;
+    background: #14a;
+    color: white;
+    font-family: serif;
+    font-style: italic;
+    text-shadow: 1px 1px 0px black;
+    font-variant-numeric: tabular-nums lining-nums;
+    width: 33%;
+}
+
+.character_stat {
+    display: flex;
+    justify-content: space-between;
+}
+
+.character_data>div:first-of-type {
+    margin-bottom: 5pt;
+}
+
+.character_name_wrapper {
+    display: flex;
+    justify-content: space-between;
+    image-rendering: pixelated;
+}
+
+.framed_text {
+    border: 3px orange outset;
+    border-radius: 5pt;
+    padding: 5pt;
+
+    background: #14a;
+    color: white;
+    font-family: serif;
+    font-style: italic;
+    text-shadow: 1px 1px 0px black;
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+.map_pointer {
+    color: white;
+    float: right;
+}
+
+.visible {
+    display: block;
+}
+
+
+
+.map_wrapper{
+    width: calc(100% - 10pt);
+    border: 3px orange outset;
+    border-radius: 5pt;
+    margin: 5pt;
+    background: #14a;
+    color: white;
+    font-family: serif;
+    font-style: italic;
+    text-shadow: 1px 1px 0px black;
+    font-variant-numeric: tabular-nums lining-nums;
+    padding-left : 5pt;
+    margin-left : 0pt;
+}
+
+.map_canvas {
+    margin-left: -7pt;
+}
+
+.pixies_table {
+    table-layout: fixed;
+    width: calc(100% - 0pt);
+    border: 3px orange outset;
+    border-radius: 5pt;
+    margin: 5pt;
+    background: #14a;
+    color: white;
+    font-family: serif;
+    font-style: italic;
+    text-shadow: 1px 1px 0px black;
+    font-variant-numeric: tabular-nums lining-nums;
+    margin-left : 0pt;
+}
+
+.pixies_table tr {
+    display: flex;
+    justify-content: space-around;
+}
+
+.pixies_table td {
+    padding: 2pt; 
+    display: flex;   
+    align-items: center;
+}
+
+.pixies_table SPAN {
+    padding-left: 2pt; 
+
+}
+
+.pixies_table td img {
+    height: 32px;
+}
+
+.item_name {
+    text-shadow: 0px 0px 2px black, 1px 1px 0px black;
+}
