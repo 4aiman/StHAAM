@@ -1,7 +1,12 @@
 # Shining The Holy Ark Auto Mapper
 
 This is a __*very alpha-state*__ auto mapper for Camelot's "Shining the Holy Ark" game for Sega Saturn.<br>
-It should work "out of the box" for RALibRetro emulator with Beetle Saturn (mednafen) core released within past couple years (as of 29th of September, 2024)
+It should work "out of the box" for RALibRetro emulator with Beetle Saturn (mednafen) core released within past couple years (as of 29th of September, 2024).
+
+> For RetroArch (Kronos core) see the [RetroArch](/tree/RetroArch) branch.<br>
+> *Note, I offer no support for it.*<br>
+> No builds are planned for it and no easy way to launch that version of this app exists.<br>
+> However, pull requests are as welcome as for the main branch.
 
 The app "attaches" itself to the emulator's process, reads memory while the game still runs, and displays data in a browser window.
 
