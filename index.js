@@ -2,9 +2,15 @@
 //////
 let fs = require("fs")
 let memoryjs = require('memoryjs')
+// RALibRetro
 let process_name = "RALibretro.exe"
 let module_name = 'mednafen_saturn_libretro.dll'
+// RetroArch
+process_name = "retroarch.exe"
+module_name = 'kronos_libretro.dll'
+
 let process = memoryjs.openProcess(process_name)
+console.log(process)
 // get specific dll inside of an EXE
 //let modules = memoryjs.getModules(process.th32ProcessID);
 // dwSize: 304,
@@ -16,6 +22,7 @@ let process = memoryjs.openProcess(process_name)
 // handle: 644,
 // modBaseAddr: 140699475116032
 let core = memoryjs.findModule(module_name, process.th32ProcessID);
+console.log(core)
 // modBaseAddr: 140714432069632,
 // modBaseSize: 24608768,
 // szExePath: 'F:\\Games\\Console\\RALibretro\\Cores\\mednafen_saturn_libretro.dll',
@@ -106,16 +113,26 @@ let char_tbl = {
     [hex2int("0xb0")] : '-',    
 }
 
+1011100
+100000
+
 let tint2char = function(int) {    
     return char_tbl[int]
 }
 
 // CE gives module name + offset (hex)
 let offsets = {
-    discrepancy : hex2int("0x77A340"), // 7840576
-    map_id : hex2int("0x18006"), 
+    // RALibretro
+    //discrepancy : hex2int("0x77A340"), // 7840576
+    //RetroArch
+    //discrepancy : hex2int("0xAB03040"), // 5666532 -- reads names, HP correctly
+    discrepancy : (process_name=='retroarch.exe')?+179318848:hex2int("0x604CDE2"), // 5666532 
+    //  In RALR map_id is at 0x792346; with the discrepancy of 0x77A340, that gives us the address of the map_id: 0x18006
+    // In RA map_id is at 0x736F90; with the discrepancy of 0x71EF8A, that gives us the address of the map_id: 0x18006
+    // In RA map_id is at 0x7350E8; with the discrepancy of 0x71EF8A, that gives us the address of the map_id: 0x18006
+    map_id : hex2int("0x18006")-78340702, 
     event_id : hex2int("0x1cf8ac"), 
-    eid : hex2int("0x1cf8b6"),
+    eid : hex2int("0x1cf8b6"), // 10D206 // C26B0
     ingame_indicator : hex2int("0x121510"),
     savefile_name : [
         hex2int("0x120731"),
@@ -123,7 +140,7 @@ let offsets = {
         hex2int("0x120733"),
         hex2int("0x120732"),
         hex2int("0x120735"),
-        hex2int("0x120734"),        
+        hex2int("0x120734"),   
     ],
     hp : {
         arthur : hex2int("0x1207b0"),
@@ -214,7 +231,13 @@ let offsets = {
 
 
 function readm(offset, type) {
-    return memoryjs.readMemory(process.handle, core.modBaseAddr+offsets.discrepancy+offset, type || memoryjs.UINT16)
+    let module_address = core.modBaseAddr
+    let discrepancy = offsets.discrepancy
+    if (process_name == "retroarch.exe") {
+        module_address = 0
+        //discrepancy = 0
+    }
+    return memoryjs.readMemory(process.handle, module_address+discrepancy+offset, type || memoryjs.UINT16)
 }
 
 // use this to send data only *1 in a throttle* readings
@@ -402,8 +425,8 @@ function new_ws_server(port) {
 
             let direction = readm(offsets.position.direction, memoryjs.UINT16)
             let steps_in_area = readm(offsets.steps.area)
-            let current_location = memoryjs.readMemory(process.handle, core.modBaseAddr+offsets.discrepancy+offsets.eid, memoryjs.UINT16_BE);
-            let current_location1 = memoryjs.readMemory(process.handle, core.modBaseAddr+offsets.discrepancy+offsets.event_id, memoryjs.UINT16_BE);
+            let current_location = readm(offsets.eid, memoryjs.UINT16_BE);
+            let current_location1 = readm(offsets.event_id, memoryjs.UINT16_BE);
             let worldmap = readm(offsets.map_id, memoryjs.UINT8)
             data.location_id = current_location
             data.location_id1 = current_location1
@@ -527,9 +550,9 @@ let save_maps = function () {
 save_maps()
 
 
-let { spawn, exec } = require('child_process');
-let ui = spawn('ui.html', { shell: true, detached : true,   stdio: 'ignore' });
-ui.unref();
+// let { spawn, exec } = require('child_process');
+// let ui = spawn('ui.html', { shell: true, detached : true,   stdio: 'ignore' });
+// ui.unref();
   
 
 

@@ -410,7 +410,7 @@ prepare_ui()
 let towns = { // fill in towns
 	'40_13105' : true, // world + location_id
 	'92_12595' : true,
-	'92_14643' : true,
+	//'92_14643' : true, // true, but harmfull
 	'120_12593' : true,
 	'120_13361' : true,
 	'232_12850' : true,
