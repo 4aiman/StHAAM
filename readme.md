@@ -46,7 +46,7 @@ So far it's capable of:
 ## How to run
 
 ### The `user` way
-- Go to [releases](releases) and download the latest `release.zip` file
+- Go to [releases](../../releases) and download the latest `release.zip` file
 - Unpack to wherever you'd like
 - Delete `maps.json` if you don't need the included map data
 - Run the `sthaam.exe`
