@@ -1,3 +1,8 @@
+:root {   
+    --frame_bg: orange;
+    --window_bg: #14a;
+  }
+
 @font-face {
     font-family: "ShiningForceFont";
     src: url("./shining-force-large.ttf");
@@ -16,18 +21,19 @@ body {
 
 .character_data {    
     display: none;
-    border: 3px orange outset;
+    border: 3px var(--frame_bg) outset;
     border-radius: 5pt;
     padding: 5pt;
     margin-right: 2.5pt;
     margin-left: 2.5pt;
-    background: #14a;
+    background: var(--window_bg);
     color: white;
     font-family: serif;
     font-style: italic;
     text-shadow: 1px 1px 0px black;
     font-variant-numeric: tabular-nums lining-nums;
     width: 33%;
+    filter: contrast(0.75);
 }
 
 .character_stat {
@@ -46,16 +52,17 @@ body {
 }
 
 .framed_text {
-    border: 3px orange outset;
+    border: 3px var(--frame_bg) outset;
     border-radius: 5pt;
     padding: 5pt;
 
-    background: #14a;
+    background: var(--window_bg);
     color: white;
     font-family: serif;
     font-style: italic;
     text-shadow: 1px 1px 0px black;
     font-variant-numeric: tabular-nums lining-nums;
+    filter: contrast(0.75);
 }
 
 .map_pointer {
@@ -71,10 +78,10 @@ body {
 
 .map_wrapper{
     width: calc(100% - 10pt);
-    border: 3px orange outset;
+    border: 3px var(--frame_bg) outset;
     border-radius: 5pt;
     margin: 5pt;
-    background: #14a;
+    background: var(--window_bg);
     color: white;
     font-family: serif;
     font-style: italic;
@@ -82,6 +89,7 @@ body {
     font-variant-numeric: tabular-nums lining-nums;
     padding-left : 5pt;
     margin-left : 0pt;
+    filter: contrast(0.75);
 }
 
 .map_canvas {
@@ -91,16 +99,17 @@ body {
 .pixies_table {
     table-layout: fixed;
     width: calc(100% - 0pt);
-    border: 3px orange outset;
+    border: 3px var(--frame_bg) outset;
     border-radius: 5pt;
     margin: 5pt;
-    background: #14a;
+    background: var(--window_bg);
     color: white;
     font-family: serif;
     font-style: italic;
     text-shadow: 1px 1px 0px black;
     font-variant-numeric: tabular-nums lining-nums;
     margin-left : 0pt;
+    filter: contrast(0.75);
 }
 
 .pixies_table tr {

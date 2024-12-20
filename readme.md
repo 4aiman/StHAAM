@@ -1,16 +1,21 @@
 # Shining The Holy Ark Auto Mapper
 
-This is a __*very alpha-state*__ auto mapper for Camelot's "Shining the Holy Ark" game for Sega Saturn.<br>
-It should work "out of the box" for RALibRetro emulator with Beetle Saturn (mednafen) core released within past couple years (as of 4th of December, 2024).
+This is a __*alpha-state*__ auto mapper for Camelot's "Shining the Holy Ark" game for Sega Saturn.<br>
+It should work "out of the box" for RALibRetro and retroarch emulators with Beetle Saturn (mednafen) or Kronos cores (any combination of the four) released within past couple years (as of 20th of December, 2024).
 
-> For RetroArch (Kronos core) see the kronos.js file.<br>
-> *Note, I offer no support for it.* as yabause's memory mapping is too finicky<br>
-> No builds are planned for it and no easy way to launch that version of this app exists.<br>
-> However, pull requests are as welcome as for the main branch.
+ *The support fro Kronos has been merged into the main index.j script on 21th of December, 2024*.<br>
+> *Note, I offer no support for Kronos core* as yabause's memory mapping is too finicky.<br>
+> However, since the core and emulator are under autodetect now, there's abuild for it.<br>
+> Pull requests are as welcome for any core/emulator.
 
-The app "attaches" itself to the emulator's process, reads memory while the game still runs, and displays data in a browser window.
+## How?
 
+The app "attaches" itself to the emulator's process, reads memory while the game still runs, and displays data in a browser window using websockets.<br>
+There's no need for a webserver, just open the ui.html in any browser (or OBS browser source).
+
+By default the colors are like this: <br>
 ![preview](preview.png)
+
 
 ## Why?
 
@@ -26,6 +31,7 @@ Reasons:
 So far it's capable of:
 - Displaying the World Map (including your current location)
 - Displaying current party members' current and max HP/MP
+- Adjusting window and frame colors based of your ing-game settings (needs customization window to be opened at least once per session)
 - Properly reading your character's name
 - Mapping dungeons with distinct colors for various floor and ceiling elevation levels
 - Mapping cities (something the game doesn't do for you)
@@ -60,11 +66,7 @@ So far it's capable of:
 - `cd` into the repo 
 - Install dependencies `npm install`
 - Delete `maps.json` if you don't need the included map data
-- Run it `node index.js` for Beetle-Saturn code<br>
-or
-- Run it `node kronos.js` for Kronos core
-
-
+- Run it `node index.js`<br>
 
 
 ## Thanks

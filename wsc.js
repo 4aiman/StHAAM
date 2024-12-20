@@ -1473,7 +1473,7 @@ function draw_minimap(d) {
 							if (minimap[x][y].additional) {							
 								for (let xx in minimap[x][y].additional) {
 									for (let yy in minimap[x][y].additional[xx]) {
-										console.log(-Number(cgrid_size*Math.round(x))-1+cgrid_size/2, Number(cgrid_size*Math.round(y))-1+cgrid_size/2, -Number(cgrid_size*Math.round(xx))-1+cgrid_size/2, Number(cgrid_size*Math.round(yy))-1+cgrid_size/2)
+										//console.log(-Number(cgrid_size*Math.round(x))-1+cgrid_size/2, Number(cgrid_size*Math.round(y))-1+cgrid_size/2, -Number(cgrid_size*Math.round(xx))-1+cgrid_size/2, Number(cgrid_size*Math.round(yy))-1+cgrid_size/2)
 										ctx.lineCap = 'butt'
 										if (Math.round(x)==Math.round(xx) || Math.round(y) == Math.round(yy)) {
 											ctx.lineWidth = cgrid_size+2
@@ -1663,6 +1663,35 @@ function show_message(message) {
 		json_data = JSON.parse(message.data)
 	} catch(err) {
 	}
+
+	let de = Number(json_data.colors.depth.toString(10))
+	let wr = Number(json_data.colors.window.red.toString(10))
+	let wg = Number(json_data.colors.window.green.toString(10))
+	let wb = Number(json_data.colors.window.blue.toString(10))
+	let fr = Number(json_data.colors.frame.red.toString(10))
+	let fg = Number(json_data.colors.frame.green.toString(10))
+	let fb = Number(json_data.colors.frame.blue.toString(10))
+	
+	let window_color = "#14a"
+	let frame_color = "orange"
+
+	if (de>=0 && wr>=0 && wg>=0 && fr>=0 && fg>=0 && fb>=0) {
+		window_color = [
+			"linear-gradient(135deg, ",
+			"rgba(", wr*16+96, ",", wg*16+96, ",", wb*16+96, ",", de*0.5, "), ",
+			"rgba(", wr*16, ",", wg*16, ",", wb*16, ",", de*0.5, "), ",
+			"rgba(", wr*16-160, ",", wg*16-160, ",", wb*16-160, ",", de*0.5, ") ",
+			")"
+		].join("")
+
+		frame_color = ["rgba(", fr*16, ",", fg*16, ",", fb*16, ",", de*0.5, ")"].join("")
+	}
+
+	let root = document.querySelector(':root')
+	root.style.setProperty('--frame_bg',frame_color)
+	root.style.setProperty('--window_bg',window_color)
+
+	
 
 	if (json_data.map_changed) {
 		map_changed = true

@@ -1,27 +1,46 @@
-
+//////
+// This works in RetroArch of all things.
+// RaLibRetro fucks everything up by its memory editor.
+// If you want this to work in RaLibRetro "as is" - do *NOT* open the memory inspector! Do *NOT* scroll it!
+// This once I want to use shaders anyway, so there's no avoiding RetroArch. Shame Mednafen can't upscale.
 //////
 let fs = require("fs")
 let memoryjs = require('memoryjs')
-let process_name = "RALibretro.exe"
-let module_name = 'mednafen_saturn_libretro.dll'
-let process = memoryjs.openProcess(process_name)
-// get specific dll inside of an EXE
-//let modules = memoryjs.getModules(process.th32ProcessID);
-// dwSize: 304,
-// th32ProcessID: 3996,
-// cntThreads: 26,
-// th32ParentProcessID: 9416,
-// pcPriClassBase: 8,
-// szExeFile: 'RALibretro.exe',
-// handle: 644,
-// modBaseAddr: 140699475116032
-let core = memoryjs.findModule(module_name, process.th32ProcessID);
-// modBaseAddr: 140714432069632,
-// modBaseSize: 24608768,
-// szExePath: 'F:\\Games\\Console\\RALibretro\\Cores\\mednafen_saturn_libretro.dll',
-// szModule: 'mednafen_saturn_libretro.dll',
-// th32ProcessID: 3996,
-// GlblcntUsage: 1
+let { exit, off } = require("process")
+
+// first try ralibretro, then retroarch. Case sensitive
+let process_names = ["RALibretro.exe", "retroarch.exe", ]
+let process_name
+let process 
+let core_offset = 0
+
+for (let pname of process_names) {
+    try {
+        process = memoryjs.openProcess(pname)
+        process_name = pname        
+        console.log(["Found process:", pname].join(" "))
+        break
+    } catch (err) {
+        console.log(["Couldn't open", pname, "..."].join(" "))
+    }
+}
+
+if (!process_name) {
+    console.log(["Couldn't open any core. Check that an emulator is actually launched and the core is loaded. Exiting."].join(" "))
+    exit()
+}
+
+
+try {
+    let module_name = 'mednafen_saturn_libretro.dll'
+    console.log(["Probing mednafen core:", module_name].join(" "))    
+    let core = memoryjs.findModule(module_name, process.th32ProcessID);
+    console.log(["Found Mednafen core.", "It's base address will be used as an additional memory offset value."].join(" "))    
+    core_offset = core.modBaseAddr
+} catch (err) {
+    console.log("You're not running Mednafen core. Assuming it's Kronos then.")
+}
+
 
 let hex2int = function(hex) {
     let result = parseInt(Number(hex), 10)
@@ -112,7 +131,8 @@ let tint2char = function(int) {
 
 // CE gives module name + offset (hex)
 let offsets = {
-    discrepancy : hex2int("0x77A340"), // 7840576
+    //discrepancy : hex2int("0x77A340"), // 7840576
+    discrepancy : hex2int("0x77A340"), // 7840576    
     map_id : hex2int("0x18006"), 
     event_id : hex2int("0x1cf8ac"), 
     eid : hex2int("0x1cf8b6"),
@@ -209,12 +229,107 @@ let offsets = {
         5 : hex2int("0x1215de"),
         6 : hex2int("0x1215df"),
     },
+    colors : {
+        depth : hex2int("0x17b791"),
+        window : {
+            red   : hex2int("0x17b7a1"),
+            green : hex2int("0x17b7a0"),        
+            blue : hex2int("0x17b798"),    
+        },
+        frame : {
+            red   : hex2int("0x17b789"),
+            green : hex2int("0x17b79b"),        
+            blue  : hex2int("0x17b799"),    
+        },
+    }
 
 }
 
+if (core_offset == 0) { 
+    // This isn't needed if we're running Mednafen/
 
-function readm(offset, type) {
-    return memoryjs.readMemory(process.handle, core.modBaseAddr+offsets.discrepancy+offset, type || memoryjs.UINT16)
+    // This is a consistent start of a lowram in Kronos, though. 
+    // If memory inspector is present (i.e. you're on RaLibretro), this will find that instead of the actual data. 
+    // It's fine, though (unless you scroll said inspector; don't, duh!)
+    let sig_work_ram_low  = "20 00 64 00 20 00 48 13 20 00 5c 13 20 00 5c 13" 
+
+    // this is the copyright message: "OCYPIRHG(T)CS GE ANEETPRIRES,STL.D1 99 4LA LIRHGSTR SEREEV D    " 
+    // but what we actually need is the "00 06 4A 09 00 06 4A 09 00 06 4A 09 00 06 4A 09" after that. Too bad it's too repetitive to be searched on its own
+    // let sig_work_ram_high = "4F 43 59 50 49 52 48 47 28 54 29 43 53 20 47 45 20 41 4E 45 45 54 50 52 49 52 45 53 2C 53 54 4C 2E 44 31 20 39 39 20 34 4C 41 20 4C 49 52 48 47 53 54 52 20 53 45 52 45 45 56 20 44 20 20 20 20"
+
+    // The above thing worked SOME times but then didn't other. 
+    // So there's more fidgeting here and below when I do the  "+ 984 -13304" crap
+    let sig_work_ram_high = "4E 49 31 3B 00 2A E4 8E 00 00 00 00 8E E4 11 A4 00 00 00 00 A4 11 05 61 11 07 06 06 00 DC 00 00 00 01 01 00 58 09 39 37 42 2E 4E 49 31 3B 00 2E E4 91 00 00 00 00 91 E4 15 F0 00 00 00 00 F0 15 0C 60 0B 04 0E 02 00 DC 00 00 00 01 01 00 58 0D 4E 49 52 54 4C 4E 43 2E 52 48 31 3B 00 00 00 00"
+    let sig_work_ram_high_length = sig_work_ram_high.replaceAll(" ","").length / 2
+    console.log(["High working ram sinature is", sig_work_ram_high_length,"bytes long."].join(" "))
+
+    // To this day I *still* have no idea where the high ram relative to the low ram as it jumps around across the launches.
+    // For all I know it can be placed *lower* than the low (at least in RaLibRetro) and be shredded in pieces.
+    // For example: sig_work_ram_low - sig_work_ram_high = 0x216000 (2187264) 
+    // Most likely I'm looking at a wrong place
+
+    // this searches relatively fast in both emulators
+    console.log("Searching sig_work_ram_low start pattern", sig_work_ram_low)
+    let addr = memoryjs.findPattern(process.handle, sig_work_ram_low, 0, 0)
+    // one needs to repeat the process in CheatEngine, but not in memoryjs. No idea why
+    //addr = memoryjs.findPattern(process.handle, sig_work_ram_low, 0, addr+1)
+    console.log("Found sig_work_ram_low address", addr, "0x"+ addr.toString(16))
+
+    // This one... The search for this one is *incredibly* slow in RALibRetro, maybe the start of this pattern is really repetitive?
+    console.log("Searching sig_work_ram_high start pattern", sig_work_ram_high)
+    // we add the length of the pattern, since we're interested in what's around it rather than the signature itself
+    let addr2 = memoryjs.findPattern(process.handle, sig_work_ram_high, 0, 0) + 984 -133040 // +3D8 - 207B0 to tread this as hiram start - 100000 //+ sig_work_ram_high_length
+    console.log("Found sig_work_ram_high address", addr2, "0x"+ addr2.toString(16))
+
+    console.log("Reading data from sig_work_ram_low+0x18006 (98310)", addr+98310, "0x"+ (addr+98310).toString(16))
+    let pat = memoryjs.readMemory(process.handle, addr+98310, memoryjs.BYTE) // Map ID
+    console.log("Reading data from sig_work_ram_high+0x207B0 (133040)", addr2, "0x"+ (addr2+133040).toString(16))
+    let pat2 = memoryjs.readMemory(process.handle, addr2+133040, memoryjs.BYTE) // Arthur's HP
+
+
+    // In the end we got our addreses
+    offsets.discrepancy_lowram = addr
+    offsets.discrepancy = addr2
+
+
+    let h_name = []
+    let h_name1 = []
+    
+    let c = 0
+    for (let i of offsets.savefile_name) {
+        h_name1[c] = readm(i, memoryjs.CHAR)//, 'hero\'s name ['+c+'] = '+tint2char(h_name1[c]))
+        h_name[c] = tint2char(h_name1[c])
+        c = c+1
+    }
+
+    // this is here for testing purposes. If thise is wrong - the thing isn't working properly ((
+    console.log("Please check if these are correct: '92 0x5c' for 'MapId' in Desire Village; Your character's name (save file name) and his HP")
+    console.log("MapID", pat, '0x'+(pat).toString(16))
+    console.log(h_name.join("").trim()+"'s HP", pat2, '0x'+(pat2).toString(16))     
+}
+
+
+function readm(offset, type, descr) {
+ if (core_offset > 0) {
+    // we're running mednafen
+    return memoryjs.readMemory(process.handle, core_offset+offsets.discrepancy+offset, type || memoryjs.UINT16)
+ } else {
+    // we're running Kronos or some unknown unsupported shit
+    let res = 0
+    let address = 0
+    if (offset < 104857) {
+        address = offsets.discrepancy_lowram+offset  
+    } else {
+        address = offsets.discrepancy+offset-1048576 // yeah, more duct tape
+    }
+
+    res = memoryjs.readMemory(process.handle, address, type || memoryjs.UINT16)
+    if (descr) {
+        console.log(address.toString(16) + 'h', type, descr, res )
+    }
+    return res
+  } 
+  throw("This should'n have happened")  
 }
 
 // use this to send data only *1 in a throttle* readings
@@ -402,8 +517,8 @@ function new_ws_server(port) {
 
             let direction = readm(offsets.position.direction, memoryjs.UINT16)
             let steps_in_area = readm(offsets.steps.area)
-            let current_location = memoryjs.readMemory(process.handle, core.modBaseAddr+offsets.discrepancy+offsets.eid, memoryjs.UINT16_BE);
-            let current_location1 = memoryjs.readMemory(process.handle, core.modBaseAddr+offsets.discrepancy+offsets.event_id, memoryjs.UINT16_BE);
+            let current_location = readm(offsets.eid, memoryjs.UINT16_BE);
+            let current_location1 = readm(offsets.event_id, memoryjs.UINT16_BE);
             let worldmap = readm(offsets.map_id, memoryjs.UINT8)
             data.location_id = current_location
             data.location_id1 = current_location1
@@ -491,12 +606,27 @@ function new_ws_server(port) {
             
             let c = 0
             for (let i of offsets.savefile_name) {                                
-                hero_name1[c] = readm(i, memoryjs.CHAR)                
+                hero_name1[c] = readm(i, memoryjs.CHAR)
                 hero_name[c] = tint2char(hero_name1[c])
                 c = c+1
             }
             data.hero_name = hero_name
             data.hero_name1 = hero_name1
+
+            let colors = {
+                depth : readm(offsets.colors.depth, memoryjs.BYTE),
+                window : {
+                    red   : readm(offsets.colors.window.red,   memoryjs.BYTE),
+                    green : readm(offsets.colors.window.green, memoryjs.BYTE),
+                    blue  : readm(offsets.colors.window.blue , memoryjs.BYTE),
+                },
+                frame : {
+                    red   : readm(offsets.colors.frame.red,   memoryjs.BYTE),
+                    green : readm(offsets.colors.frame.green, memoryjs.BYTE),
+                    blue  : readm(offsets.colors.frame.blue , memoryjs.BYTE),
+                }
+            }            
+            data.colors = colors
             
             throttle_counter = throttle_counter + 1
             if ((throttle_counter > throttle) || data.map_changed) {
@@ -527,10 +657,10 @@ let save_maps = function () {
 save_maps()
 
 
-let { spawn, exec } = require('child_process');
-let ui = spawn('ui.html', { shell: true, detached : true,   stdio: 'ignore' });
-ui.unref();
+// let { spawn, exec } = require('child_process');
+// let ui = spawn('ui.html', { shell: true, detached : true,   stdio: 'ignore' });
+// ui.unref();
   
 
 
-//memoryjs.closeProcess(process.handle);
+// memoryjs.closeProcess(process.handle);
